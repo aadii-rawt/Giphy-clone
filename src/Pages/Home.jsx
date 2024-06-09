@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import FilterGif from '../Components/FilterGif'
 import { GifState } from '../Context/DataContext'
 import Gif from '../Components/Gif';
@@ -6,20 +6,40 @@ import SearchGif from '../Components/SearchGif';
 
 function Home() {
   const { gf, gifs, setGifs, filter } = GifState()
+  const [limit, setLimit] = useState(20)
+
 
   async function fetchTrendingGifs() {
     const { data } = await gf.trending({
-      limit: 20,
+      limit: limit,
       type: filter,
       rating: "g",
     });
 
-    setGifs(data)
+    setGifs((prev) => [...prev,...data])
   }
 
   useEffect(() => {
     fetchTrendingGifs()
-  }, [filter])
+  }, [filter, limit])
+
+  const handelInfiniteScroll = async () => {
+    try {
+      if (
+        window.innerHeight + document.documentElement.scrollTop + 1 >=
+        document.documentElement.scrollHeight
+      ) {
+        setLimit((prev) => prev + 20);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handelInfiniteScroll);
+    return () => window.removeEventListener("scroll", handelInfiniteScroll);
+  }, []);
 
   return (
     <div >
